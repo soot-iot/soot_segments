@@ -3,10 +3,8 @@ defmodule SootSegments.Test.Factories do
 
   def reset! do
     for resource <- [SootSegments.SegmentRow, SootSegments.SegmentVersion] do
-      try do
+      if :ets.whereis(resource) != :undefined do
         :ets.delete_all_objects(resource)
-      rescue
-        _ -> :ok
       end
     end
 

@@ -50,7 +50,7 @@ defmodule SootSegments.Query do
     select_lines =
       ["    bucket"] ++
         Enum.map(dims, fn d -> "    " <> Atom.to_string(d.name) end) ++
-        Enum.map(metrics, fn m -> "    " <> SQL.merge_expr(m, nil) end)
+        Enum.map(metrics, fn m -> "    " <> SQL.merge_expr(m) end)
 
     group_lines =
       ["bucket" | Enum.map(dims, &Atom.to_string(&1.name))]

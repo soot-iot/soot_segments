@@ -36,12 +36,8 @@ defmodule SootSegments.Segment.Info do
 
   @doc "Convenience: optional raw WHERE clause."
   @spec raw_where(module()) :: String.t() | nil
-  def raw_where(module) do
-    case Spark.Dsl.Extension.get_opt(module, [:segment], :raw_where, nil) do
-      nil -> nil
-      value -> value
-    end
-  end
+  def raw_where(module),
+    do: Spark.Dsl.Extension.get_opt(module, [:segment], :raw_where, nil)
 
   @doc "Convenience: retention keyword list."
   @spec retention(module()) :: keyword()

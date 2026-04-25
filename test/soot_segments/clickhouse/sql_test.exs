@@ -31,14 +31,14 @@ defmodule SootSegments.ClickHouse.SQLTest do
     end
   end
 
-  describe "merge_expr/2" do
+  describe "merge_expr/1" do
     test "renames the underlying state column to the metric name" do
-      assert SQL.merge_expr(%Metric{aggregation: :avg, name: :w_avg}, nil) ==
+      assert SQL.merge_expr(%Metric{aggregation: :avg, name: :w_avg}) ==
                "avgMerge(w_avg_state) AS w_avg"
     end
 
     test "quantile merge carries the q" do
-      assert SQL.merge_expr(%Metric{aggregation: :quantile, name: :w_p95, q: 0.95}, nil) ==
+      assert SQL.merge_expr(%Metric{aggregation: :quantile, name: :w_p95, q: 0.95}) ==
                "quantileTDigestMerge(0.95)(w_p95_state) AS w_p95"
     end
   end

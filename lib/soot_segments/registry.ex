@@ -67,9 +67,15 @@ defmodule SootSegments.Registry do
   end
 
   defp create_new_version(name, fingerprint, descriptor, target) do
-    deprecate_previous(name)
+    {:ok, prior_versions} = SegmentVersion.for_segment(name, authorize?: false)
 
-    version = next_version(name)
+    Enum.each(prior_versions, fn v ->
+      if v.status == :current do
+        SegmentVersion.deprecate(v, authorize?: false)
+      end
+    end)
+
+    version = next_version_number(prior_versions)
 
     case SegmentVersion.create(
            name,
@@ -77,7 +83,7 @@ defmodule SootSegments.Registry do
            fingerprint,
            descriptor,
            DateTime.utc_now(),
-           %{materialized_target: target_with_version(target, version)},
+           %{materialized_target: target <> "_v" <> Integer.to_string(version)},
            authorize?: false
          ) do
       {:ok, _} = ok ->
@@ -95,26 +101,17 @@ defmodule SootSegments.Registry do
   end
 
   defp deprecate_previous(name) do
-    case SegmentVersion.for_segment(name, authorize?: false) do
-      {:ok, versions} ->
-        Enum.each(versions, fn v ->
-          if v.status == :current do
-            SegmentVersion.deprecate(v, authorize?: false)
-          end
-        end)
+    {:ok, versions} = SegmentVersion.for_segment(name, authorize?: false)
 
-      _ ->
-        :ok
-    end
+    Enum.each(versions, fn v ->
+      if v.status == :current do
+        SegmentVersion.deprecate(v, authorize?: false)
+      end
+    end)
   end
 
-  defp next_version(name) do
-    case SegmentVersion.for_segment(name, authorize?: false) do
-      {:ok, []} -> 1
-      {:ok, versions} -> (Enum.map(versions, & &1.version) |> Enum.max()) + 1
-      _ -> 1
-    end
-  end
+  defp next_version_number([]), do: 1
+  defp next_version_number(versions), do: Enum.max(Enum.map(versions, & &1.version)) + 1
 
   defp upsert_segment(module, name, %SegmentVersion{} = version) do
     case SegmentRow.get_by_name(name, authorize?: false) do
@@ -143,7 +140,4 @@ defmodule SootSegments.Registry do
     end
   end
 
-  defp target_with_version(target, version) when is_binary(target) do
-    target <> "_v" <> Integer.to_string(version)
-  end
 end

@@ -37,23 +37,23 @@ defmodule SootSegments.ClickHouse.SQL do
   Render the `<Fn>Merge` expression used in queries that read the MV.
   Pairs with `state_expr/1`.
   """
-  @spec merge_expr(SootSegments.Segment.Metric.t(), String.t()) :: String.t()
-  def merge_expr(%{aggregation: :count, name: n}, _state_col),
+  @spec merge_expr(SootSegments.Segment.Metric.t()) :: String.t()
+  def merge_expr(%{aggregation: :count, name: n}),
     do: "countMerge(#{n}_state) AS #{n}"
 
-  def merge_expr(%{aggregation: :sum, name: n}, _),
+  def merge_expr(%{aggregation: :sum, name: n}),
     do: "sumMerge(#{n}_state) AS #{n}"
 
-  def merge_expr(%{aggregation: :avg, name: n}, _),
+  def merge_expr(%{aggregation: :avg, name: n}),
     do: "avgMerge(#{n}_state) AS #{n}"
 
-  def merge_expr(%{aggregation: :min, name: n}, _),
+  def merge_expr(%{aggregation: :min, name: n}),
     do: "minMerge(#{n}_state) AS #{n}"
 
-  def merge_expr(%{aggregation: :max, name: n}, _),
+  def merge_expr(%{aggregation: :max, name: n}),
     do: "maxMerge(#{n}_state) AS #{n}"
 
-  def merge_expr(%{aggregation: :quantile, name: n, q: q}, _) do
+  def merge_expr(%{aggregation: :quantile, name: n, q: q}) do
     "quantileTDigestMerge(#{q})(#{n}_state) AS #{n}"
   end
 
