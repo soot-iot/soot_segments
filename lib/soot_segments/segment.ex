@@ -46,8 +46,7 @@ defmodule SootSegments.Segment do
     target: SootSegments.Segment.Dimension,
     args: [:name],
     schema: [
-      name: [type: :atom, required: true],
-      as: [type: :atom, doc: "Column alias used in the GROUP BY output."]
+      name: [type: :atom, required: true]
     ]
   }
 

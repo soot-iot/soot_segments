@@ -5,12 +5,10 @@ defmodule SootSegments.Segment.Dimension do
 
   defstruct [
     :name,
-    :as,
     __spark_metadata__: nil
   ]
 
   @type t :: %__MODULE__{
-          name: atom(),
-          as: atom() | nil
+          name: atom()
         }
 end

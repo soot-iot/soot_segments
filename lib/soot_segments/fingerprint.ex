@@ -40,7 +40,7 @@ defmodule SootSegments.Fingerprint do
     |> Base.encode16(case: :lower)
   end
 
-  defp dim_descriptor(%Dimension{name: name, as: a}), do: %{name: name, as: a}
+  defp dim_descriptor(%Dimension{name: name}), do: %{name: name}
 
   defp metric_descriptor(%Metric{} = m) do
     %{name: m.name, aggregation: m.aggregation, column: m.column, q: m.q}
