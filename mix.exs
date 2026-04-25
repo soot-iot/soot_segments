@@ -16,7 +16,8 @@ defmodule SootSegments.MixProject do
       description: description(),
       package: package(),
       source_url: @source_url,
-      docs: docs()
+      docs: docs(),
+      aliases: aliases()
     ]
   end
 
@@ -50,6 +51,13 @@ defmodule SootSegments.MixProject do
     ]
   end
 
+  defp aliases do
+    [
+      format: "format --migrate",
+      credo: "credo --strict"
+    ]
+  end
+
   defp deps do
     [
       {:ash, "~> 3.24"},
@@ -58,7 +66,14 @@ defmodule SootSegments.MixProject do
       {:soot_core, path: "../soot_core"},
       {:soot_telemetry, path: "../soot_telemetry"},
       {:plug, "~> 1.19"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+
+      # Dev / test
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.34", only: [:dev], runtime: false},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:simple_sat, "~> 0.1", only: [:dev, :test]},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
 end

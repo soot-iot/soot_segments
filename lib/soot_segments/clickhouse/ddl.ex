@@ -76,8 +76,7 @@ defmodule SootSegments.ClickHouse.DDL do
 
     columns =
       [bucket_col | dim_lines ++ metric_lines]
-      |> Enum.map(&("    " <> &1))
-      |> Enum.join(",\n")
+      |> Enum.map_join(",\n", &("    " <> &1))
 
     order_by =
       ["bucket" | Enum.map(Info.dimensions(module), &Atom.to_string(&1.name))]
