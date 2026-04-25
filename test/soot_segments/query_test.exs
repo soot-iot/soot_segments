@@ -1,13 +1,29 @@
 defmodule SootSegments.QueryTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
-  alias SootSegments.Query
+  alias SootSegments.{Query, Registry}
+  alias SootSegments.Test.Factories
   alias SootSegments.Test.Fixtures.{PowerDaily, VibrationP95}
 
+  setup do
+    Factories.reset!()
+    {:ok, _} = Registry.register(VibrationP95)
+    {:ok, _} = Registry.register(PowerDaily)
+    :ok
+  end
+
   describe "sql/2" do
-    test "produces a SELECT against the segment's MV target" do
+    test "produces a SELECT against the registered segment's current MV target" do
       sql = Query.sql(VibrationP95)
       assert sql =~ "FROM segment_vibration_p95_v1"
+    end
+
+    test "raises when the segment has not been registered" do
+      Factories.reset!()
+
+      assert_raise ArgumentError, ~r/not registered/, fn ->
+        Query.sql(VibrationP95)
+      end
     end
 
     test "merges every metric with its <Fn>Merge variant" do

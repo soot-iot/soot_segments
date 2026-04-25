@@ -11,6 +11,11 @@ defmodule SootSegments.Query do
   Returns the raw SQL string. Running it is the operator's job (via the
   `:ch` driver, the EMQX SQL bridge, ClickHouse HTTP, etc.).
 
+  The MV target is resolved by reading the segment's registered
+  `SegmentRow.target`. Callers must register the module first
+  (`SootSegments.Registry.register/1`); pass `target:` explicitly to
+  query a specific historical version.
+
   `cinder/2` returns a structure suitable for handing to a Cinder
   table. The shape is intentionally framework-agnostic: a map with
   `:sql`, `:params`, `:columns` keys; the operator's Cinder helper
@@ -19,6 +24,7 @@ defmodule SootSegments.Query do
 
   alias SootSegments.ClickHouse.SQL
   alias SootSegments.Segment.Info
+  alias SootSegments.SegmentRow
 
   @default_window_hours 24
 
@@ -128,5 +134,17 @@ defmodule SootSegments.Query do
     {from, until}
   end
 
-  defp default_target(module), do: Info.target(module) <> "_v1"
+  defp default_target(module) do
+    name = Info.name(module)
+
+    case SegmentRow.get_by_name(name, authorize?: false) do
+      {:ok, %SegmentRow{target: target}} when is_binary(target) ->
+        target
+
+      _ ->
+        raise ArgumentError,
+              "segment #{inspect(name)} (#{inspect(module)}) is not registered; " <>
+                "call SootSegments.Registry.register/1 first or pass `target:` explicitly"
+    end
+  end
 end

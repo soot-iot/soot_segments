@@ -17,6 +17,8 @@ defmodule Mix.Tasks.SootSegments.GenMigrations do
 
   use Mix.Task
 
+  alias SootSegments.{ClickHouse.DDL, Registry}
+
   @switches [out: :string, segment: [:string, :keep], database: :string]
 
   @impl Mix.Task
@@ -38,11 +40,16 @@ defmodule Mix.Tasks.SootSegments.GenMigrations do
         "-- Segments: " <>
         Enum.map_join(segments, ", ", &inspect/1) <>
         "\n\n" <>
-        Enum.map_join(segments, "\n\n", &SootSegments.ClickHouse.DDL.create_view(&1, opts)) <>
+        Enum.map_join(segments, "\n\n", &render(&1, opts)) <>
         "\n"
 
     File.write!(out, body)
     Mix.shell().info("wrote #{out}")
+  end
+
+  defp render(module, opts) do
+    {:ok, %{segment: segment}} = Registry.register(module)
+    DDL.create_view(module, Keyword.put(opts, :target, segment.target))
   end
 
   defp load_module(name) do
