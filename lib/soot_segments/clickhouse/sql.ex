@@ -100,6 +100,11 @@ defmodule SootSegments.ClickHouse.SQL do
 
   @doc "Quote a value for inclusion in SQL. Strings are single-quoted with `'` doubled."
   @spec quote_value(term()) :: String.t()
+  def quote_value(nil) do
+    raise ArgumentError,
+          "nil is not a valid filter value (SQL `= NULL` is never true; use `IS NULL` if needed)"
+  end
+
   def quote_value(value) when is_binary(value) do
     "'" <> String.replace(value, "'", "''") <> "'"
   end

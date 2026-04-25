@@ -2,7 +2,7 @@ defmodule SootSegments.ClickHouse.DDLTest do
   use ExUnit.Case, async: true
 
   alias SootSegments.ClickHouse.DDL
-  alias SootSegments.Test.Fixtures.{PowerDaily, VibrationP95}
+  alias SootSegments.Test.Fixtures.{HeartbeatFiveMinute, PowerDaily, VibrationP95}
 
   describe "create_table/3" do
     test "renders bucket + dimensions + state columns + AggregatingMergeTree" do
@@ -53,6 +53,17 @@ defmodule SootSegments.ClickHouse.DDLTest do
     test "no WHERE when filter and raw_where are empty" do
       sql = DDL.create_mv(PowerDaily, "segment_power_daily_v1", "telemetry_power")
       refute sql =~ "WHERE "
+    end
+
+    test "five_minute granularity emits toStartOfFiveMinute" do
+      sql =
+        DDL.create_mv(
+          HeartbeatFiveMinute,
+          "segment_heartbeat_five_minute_v1",
+          "telemetry_heartbeat"
+        )
+
+      assert sql =~ "toStartOfFiveMinute(ts) AS bucket"
     end
   end
 

@@ -98,5 +98,9 @@ defmodule SootSegments.ClickHouse.SQLTest do
     test "atoms are quoted as strings" do
       assert SQL.quote_value(:acme) == "'acme'"
     end
+
+    test "nil raises with a hint about IS NULL" do
+      assert_raise ArgumentError, ~r/IS NULL/, fn -> SQL.quote_value(nil) end
+    end
   end
 end

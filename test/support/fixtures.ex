@@ -53,6 +53,25 @@ defmodule SootSegments.Test.Fixtures.VibrationP95V2 do
   end
 end
 
+defmodule SootSegments.Test.Fixtures.HeartbeatFiveMinute do
+  @moduledoc "Five-minute granularity fixture for end-to-end DDL coverage."
+  use SootSegments.Segment.Definition
+
+  segment do
+    name :heartbeat_five_minute
+    source_stream(:heartbeat)
+    granularity(:five_minute)
+
+    dimensions do
+      dimension(:device_id)
+    end
+
+    metrics do
+      metric(:beats, :count)
+    end
+  end
+end
+
 defmodule SootSegments.Test.Fixtures.PowerDaily do
   @moduledoc false
   use SootSegments.Segment.Definition
