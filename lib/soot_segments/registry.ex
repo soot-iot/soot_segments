@@ -138,5 +138,4 @@ defmodule SootSegments.Registry do
         )
     end
   end
-
 end
