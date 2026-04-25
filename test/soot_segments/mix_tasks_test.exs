@@ -1,11 +1,15 @@
 defmodule SootSegments.MixTasksTest do
   use ExUnit.Case, async: false
 
+  alias SootSegments.{Registry, SegmentVersion}
+  alias SootSegments.Test.Factories
+
   @tmp Path.join(System.tmp_dir!(), "soot_segments_mix_tasks_test")
 
   setup do
     File.rm_rf!(@tmp)
     File.mkdir_p!(@tmp)
+    Factories.reset!()
     on_exit(fn -> File.rm_rf!(@tmp) end)
     :ok
   end
@@ -52,6 +56,45 @@ defmodule SootSegments.MixTasksTest do
 
       assert File.read!(out) =~ "iot.segment_vibration_p95_v1"
     end
+
+    test "raises a friendly error for an unknown segment module" do
+      out = Path.join(@tmp, "x.sql")
+
+      assert_raise Mix.Error, ~r/could not load .* make sure it's compiled/, fn ->
+        Mix.Tasks.SootSegments.GenMigrations.run([
+          "--out",
+          out,
+          "--segment",
+          "Nope.Nada.NotAModule"
+        ])
+      end
+    end
+
+    test "after a definition change, regenerating emits the v2 DDL" do
+      out = Path.join(@tmp, "v2.sql")
+
+      Mix.Tasks.SootSegments.GenMigrations.run([
+        "--out",
+        out,
+        "--segment",
+        "SootSegments.Test.Fixtures.VibrationP95"
+      ])
+
+      Mix.Tasks.SootSegments.GenMigrations.run([
+        "--out",
+        out,
+        "--segment",
+        "SootSegments.Test.Fixtures.VibrationP95V2"
+      ])
+
+      body = File.read!(out)
+      assert body =~ "CREATE TABLE IF NOT EXISTS segment_vibration_p95_v2"
+      assert body =~ "CREATE MATERIALIZED VIEW IF NOT EXISTS segment_vibration_p95_v2_mv"
+      refute body =~ "segment_vibration_p95_v1"
+
+      {:ok, versions} = SegmentVersion.for_segment(:vibration_p95)
+      assert Enum.find(versions, &(&1.version == 2)).status == :current
+    end
   end
 
   describe "mix soot_segments.gen_backfill" do
@@ -71,6 +114,56 @@ defmodule SootSegments.MixTasksTest do
       assert body =~ "INSERT INTO segment_vibration_p95_v1"
       assert body =~ "FROM telemetry_vibration"
       assert body =~ "ts >= '2026-01-01T00:00:00Z'"
+    end
+
+    test "errors out without --segment" do
+      out = Path.join(@tmp, "x.sql")
+
+      assert_raise KeyError, fn ->
+        Mix.Tasks.SootSegments.GenBackfill.run(["--out", out])
+      end
+    end
+
+    test "errors out without --out" do
+      assert_raise KeyError, fn ->
+        Mix.Tasks.SootSegments.GenBackfill.run([
+          "--segment",
+          "SootSegments.Test.Fixtures.VibrationP95"
+        ])
+      end
+    end
+
+    test "raises a friendly error for an unknown segment module" do
+      out = Path.join(@tmp, "x.sql")
+
+      assert_raise Mix.Error, ~r/could not load .* make sure it's compiled/, fn ->
+        Mix.Tasks.SootSegments.GenBackfill.run([
+          "--out",
+          out,
+          "--segment",
+          "Nope.Nada.NotAModule"
+        ])
+      end
+    end
+
+    test "after a definition change, regenerating targets the v2 table" do
+      {:ok, _} = Registry.register(SootSegments.Test.Fixtures.VibrationP95)
+      {:ok, _} = Registry.register(SootSegments.Test.Fixtures.VibrationP95V2)
+
+      out = Path.join(@tmp, "v2_backfill.sql")
+
+      Mix.Tasks.SootSegments.GenBackfill.run([
+        "--out",
+        out,
+        "--segment",
+        "SootSegments.Test.Fixtures.VibrationP95V2",
+        "--from",
+        "2026-01-01T00:00:00Z"
+      ])
+
+      body = File.read!(out)
+      assert body =~ "INSERT INTO segment_vibration_p95_v2"
+      refute body =~ "segment_vibration_p95_v1"
     end
   end
 end
