@@ -77,6 +77,12 @@ defmodule SootSegments.SegmentVersion do
       change set_attribute(:status, :retired)
     end
 
+    update :promote do
+      accept []
+      require_atomic? false
+      change set_attribute(:status, :current)
+    end
+
     read :for_segment do
       argument :segment_name, :atom, allow_nil?: false
       filter expr(segment_name == ^arg(:segment_name))
@@ -97,6 +103,7 @@ defmodule SootSegments.SegmentVersion do
 
     define :deprecate
     define :retire
+    define :promote
     define :for_segment, args: [:segment_name]
     define :get_by_fingerprint, args: [:segment_name, :fingerprint]
   end

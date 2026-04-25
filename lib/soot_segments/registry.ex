@@ -51,8 +51,15 @@ defmodule SootSegments.Registry do
 
   defp ensure_version(name, fingerprint, descriptor, target) do
     case SegmentVersion.get_by_fingerprint(name, fingerprint, authorize?: false) do
-      {:ok, %SegmentVersion{} = version} ->
+      {:ok, %SegmentVersion{status: :current} = version} ->
         {:ok, version}
+
+      {:ok, %SegmentVersion{status: :deprecated} = version} ->
+        deprecate_previous(name)
+        SegmentVersion.promote(version, authorize?: false)
+
+      {:ok, %SegmentVersion{status: :retired}} ->
+        {:error, :cannot_reuse_retired_version}
 
       {:error, _} ->
         deprecate_previous(name)
