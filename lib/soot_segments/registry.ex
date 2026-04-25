@@ -62,19 +62,35 @@ defmodule SootSegments.Registry do
         {:error, :cannot_reuse_retired_version}
 
       {:error, _} ->
-        deprecate_previous(name)
+        create_new_version(name, fingerprint, descriptor, target)
+    end
+  end
 
-        version = next_version(name)
+  defp create_new_version(name, fingerprint, descriptor, target) do
+    deprecate_previous(name)
 
-        SegmentVersion.create(
-          name,
-          version,
-          fingerprint,
-          descriptor,
-          DateTime.utc_now(),
-          %{materialized_target: target_with_version(target, version)},
-          authorize?: false
-        )
+    version = next_version(name)
+
+    case SegmentVersion.create(
+           name,
+           version,
+           fingerprint,
+           descriptor,
+           DateTime.utc_now(),
+           %{materialized_target: target_with_version(target, version)},
+           authorize?: false
+         ) do
+      {:ok, _} = ok ->
+        ok
+
+      {:error, _} = err ->
+        # Concurrent register: another caller may have created the
+        # row for this fingerprint or won the version-number race.
+        # Re-look up by fingerprint and use that row if present.
+        case SegmentVersion.get_by_fingerprint(name, fingerprint, authorize?: false) do
+          {:ok, %SegmentVersion{} = existing} -> {:ok, existing}
+          _ -> err
+        end
     end
   end
 
