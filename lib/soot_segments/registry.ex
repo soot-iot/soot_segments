@@ -130,7 +130,6 @@ defmodule SootSegments.Registry do
       {:error, _} ->
         SegmentRow.create(
           name,
-          module,
           Info.source_stream(module),
           Info.granularity(module),
           version.id,

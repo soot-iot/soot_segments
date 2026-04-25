@@ -29,7 +29,11 @@ defmodule Mix.Tasks.SootSegments.GenBackfill do
     out = Keyword.fetch!(opts, :out)
     segment_name = Keyword.fetch!(opts, :segment)
     module = Module.concat([segment_name])
-    Code.ensure_loaded!(module)
+
+    case Code.ensure_loaded(module) do
+      {:module, ^module} -> :ok
+      {:error, _} -> Mix.raise("could not load #{segment_name} — make sure it's compiled")
+    end
 
     from =
       case Keyword.get(opts, :from) do

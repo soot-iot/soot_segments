@@ -14,7 +14,6 @@ defmodule SootSegments.RegistryTest do
     {:ok, %{segment: seg, version: v}} = Registry.register(VibrationP95)
 
     assert seg.name == :vibration_p95
-    assert seg.module == VibrationP95
     assert seg.source_stream == :vibration
     assert seg.granularity == :hour
     assert seg.current_version_id == v.id

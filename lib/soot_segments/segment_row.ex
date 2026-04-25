@@ -19,7 +19,6 @@ defmodule SootSegments.SegmentRow do
     uuid_primary_key :id
 
     attribute :name, :atom, allow_nil?: false, public?: true
-    attribute :module, :atom, public?: true
     attribute :source_stream, :atom, allow_nil?: false, public?: true
     attribute :granularity, :atom, allow_nil?: false, public?: true
     attribute :current_version_id, :uuid, allow_nil?: false, public?: true
@@ -45,7 +44,7 @@ defmodule SootSegments.SegmentRow do
     defaults [
       :read,
       :destroy,
-      create: [:name, :module, :source_stream, :granularity, :current_version_id, :target],
+      create: [:name, :source_stream, :granularity, :current_version_id, :target],
       update: [:current_version_id, :target]
     ]
 
@@ -75,7 +74,7 @@ defmodule SootSegments.SegmentRow do
   end
 
   code_interface do
-    define :create, args: [:name, :module, :source_stream, :granularity, :current_version_id]
+    define :create, args: [:name, :source_stream, :granularity, :current_version_id]
     define :pause
     define :resume
     define :retire

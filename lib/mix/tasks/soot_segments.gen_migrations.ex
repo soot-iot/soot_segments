@@ -54,7 +54,10 @@ defmodule Mix.Tasks.SootSegments.GenMigrations do
 
   defp load_module(name) do
     mod = Module.concat([name])
-    Code.ensure_loaded!(mod)
-    mod
+
+    case Code.ensure_loaded(mod) do
+      {:module, ^mod} -> mod
+      {:error, _} -> Mix.raise("could not load #{name} — make sure it's compiled")
+    end
   end
 end

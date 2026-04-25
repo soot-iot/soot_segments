@@ -135,13 +135,14 @@ mix soot_segments.gen_backfill \
 mix test
 ```
 
-62 tests cover: DSL parsing + parse-time rejections (missing name,
-unknown aggregation, unknown granularity), fingerprint determinism +
+Covers: DSL parsing + parse-time rejections (missing name, unknown
+aggregation, unknown granularity), fingerprint determinism +
 key-order independence + sensitivity to metric/filter changes, the
-registry's idempotence + multi-module behavior, every `state_expr` /
-`merge_expr` / `state_type` for every aggregation, where-clause
-construction with quoting + raw escape hatch, full table + MV +
-backfill DDL across both fixture segments, query SQL with
+registry's idempotence + version bump + deprecated-reuse promotion +
+concurrent-register recovery, every `state_expr` / `merge_expr` /
+`state_type` for every aggregation, where-clause construction with
+quoting + raw escape hatch, full table + MV + backfill DDL across
+both fixture segments, registry-aware query SQL with
 `from/until/dims/metrics/target` overrides, the cinder shape with
 column typing, and both mix tasks end-to-end with file output
 assertions.
