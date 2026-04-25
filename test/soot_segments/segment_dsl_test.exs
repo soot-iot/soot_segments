@@ -55,14 +55,14 @@ defmodule SootSegments.SegmentDslTest do
           use SootSegments.Segment.Definition
 
           segment do
-            source_stream :vibration
+            source_stream(:vibration)
 
             dimensions do
-              dimension :tenant_id
+              dimension(:tenant_id)
             end
 
             metrics do
-              metric :s, :count
+              metric(:s, :count)
             end
           end
         end
@@ -76,14 +76,14 @@ defmodule SootSegments.SegmentDslTest do
 
           segment do
             name :bad_agg
-            source_stream :v
+            source_stream(:v)
 
             dimensions do
-              dimension :tenant_id
+              dimension(:tenant_id)
             end
 
             metrics do
-              metric :x, :stddev_pop, column: :y
+              metric(:x, :stddev_pop, column: :y)
             end
           end
         end
@@ -97,15 +97,15 @@ defmodule SootSegments.SegmentDslTest do
 
           segment do
             name :bad_gran
-            source_stream :v
-            granularity :nanosecond
+            source_stream(:v)
+            granularity(:nanosecond)
 
             dimensions do
-              dimension :tenant_id
+              dimension(:tenant_id)
             end
 
             metrics do
-              metric :s, :count
+              metric(:s, :count)
             end
           end
         end

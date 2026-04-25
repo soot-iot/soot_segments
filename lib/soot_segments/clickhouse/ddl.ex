@@ -164,7 +164,9 @@ defmodule SootSegments.ClickHouse.DDL do
 
     metric_exprs =
       Info.metrics(module)
-      |> Enum.map(fn m -> "    " <> SQL.state_expr(m) <> " AS " <> Atom.to_string(m.name) <> "_state" end)
+      |> Enum.map(fn m ->
+        "    " <> SQL.state_expr(m) <> " AS " <> Atom.to_string(m.name) <> "_state"
+      end)
 
     [bucket_expr | dim_exprs ++ metric_exprs]
     |> Enum.join(",\n")

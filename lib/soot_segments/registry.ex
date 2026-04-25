@@ -99,7 +99,9 @@ defmodule SootSegments.Registry do
         if segment.current_version_id == version.id do
           {:ok, segment}
         else
-          Ash.update(segment, %{current_version_id: version.id, target: version.materialized_target},
+          Ash.update(
+            segment,
+            %{current_version_id: version.id, target: version.materialized_target},
             action: :update,
             authorize?: false
           )

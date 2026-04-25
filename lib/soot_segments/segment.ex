@@ -108,8 +108,7 @@ defmodule SootSegments.Segment do
       filter: [
         type: :keyword_list,
         default: [],
-        doc:
-          "Equality predicates as a keyword list, e.g. `[tenant_id: \"acme\", model: \"X\"]`."
+        doc: "Equality predicates as a keyword list, e.g. `[tenant_id: \"acme\", model: \"X\"]`."
       ],
       raw_where: [
         type: :string,

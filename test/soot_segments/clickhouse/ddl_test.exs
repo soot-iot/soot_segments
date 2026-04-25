@@ -73,8 +73,10 @@ defmodule SootSegments.ClickHouse.DDLTest do
 
   describe "backfill_sql/3" do
     test "INSERT INTO … SELECT with an ISO-8601 floor" do
-      sql = DDL.backfill_sql(VibrationP95, ~U[2026-01-01 00:00:00Z],
-              target: "segment_vibration_p95_v1")
+      sql =
+        DDL.backfill_sql(VibrationP95, ~U[2026-01-01 00:00:00Z],
+          target: "segment_vibration_p95_v1"
+        )
 
       assert sql =~ "INSERT INTO segment_vibration_p95_v1"
       assert sql =~ "FROM telemetry_vibration"
