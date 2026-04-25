@@ -3,7 +3,7 @@ defmodule SootSegments.RegistryTest do
 
   alias SootSegments.{Registry, SegmentRow, SegmentVersion}
   alias SootSegments.Test.Factories
-  alias SootSegments.Test.Fixtures.{PowerDaily, VibrationP95}
+  alias SootSegments.Test.Fixtures.{PowerDaily, VibrationP95, VibrationP95V2}
 
   setup do
     Factories.reset!()
@@ -48,5 +48,64 @@ defmodule SootSegments.RegistryTest do
     {:ok, %{version: vv}} = Registry.register(VibrationP95)
     {:ok, %{version: pv}} = Registry.register(PowerDaily)
     assert vv.fingerprint != pv.fingerprint
+  end
+
+  describe "definition change" do
+    test "creates a new version, deprecates the prior current, and updates the SegmentRow" do
+      {:ok, %{segment: seg_v1, version: v1}} = Registry.register(VibrationP95)
+      {:ok, %{segment: seg_v2, version: v2}} = Registry.register(VibrationP95V2)
+
+      assert v2.version == 2
+      assert v2.status == :current
+      assert v2.materialized_target == "segment_vibration_p95_v2"
+
+      assert {:ok, reloaded_v1} = Ash.get(SegmentVersion, v1.id)
+      assert reloaded_v1.status == :deprecated
+
+      assert seg_v2.id == seg_v1.id
+      assert seg_v2.current_version_id == v2.id
+      assert seg_v2.target == v2.materialized_target
+    end
+
+    test "re-registering a deprecated fingerprint promotes it back to current" do
+      {:ok, %{version: v1}} = Registry.register(VibrationP95)
+      {:ok, %{version: v2}} = Registry.register(VibrationP95V2)
+
+      # Roll back: re-register the original fixture
+      {:ok, %{segment: seg, version: rolled}} = Registry.register(VibrationP95)
+
+      assert rolled.id == v1.id
+      assert rolled.status == :current
+      assert seg.current_version_id == v1.id
+      assert seg.target == v1.materialized_target
+
+      assert {:ok, reloaded_v2} = Ash.get(SegmentVersion, v2.id)
+      assert reloaded_v2.status == :deprecated
+    end
+
+    test "refuses to reuse a retired version" do
+      {:ok, %{version: v1}} = Registry.register(VibrationP95)
+      {:ok, _} = SegmentVersion.retire(v1, authorize?: false)
+
+      assert {:error, :cannot_reuse_retired_version} = Registry.register(VibrationP95)
+    end
+  end
+
+  describe "register_all/1" do
+    test "halts on the first error returned by register/1 and returns it" do
+      # Force a structured error from the second module: retire
+      # VibrationP95's v1, then attempt to re-register it after V2.
+      {:ok, %{version: v1}} = Registry.register(VibrationP95)
+      {:ok, _} = SegmentVersion.retire(v1, authorize?: false)
+
+      assert {:error, :cannot_reuse_retired_version} =
+               Registry.register_all([VibrationP95V2, VibrationP95])
+
+      # The first module of the list still made it through.
+      {:ok, versions} = SegmentVersion.for_segment(:vibration_p95)
+      versions_by_v = Map.new(versions, &{&1.version, &1.status})
+      assert versions_by_v[1] == :retired
+      assert versions_by_v[2] == :current
+    end
   end
 end
