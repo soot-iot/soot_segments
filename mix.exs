@@ -72,6 +72,7 @@ defmodule SootSegments.MixProject do
       {:ash_pki, path: "../ash_pki"},
       {:soot_core, path: "../soot_core"},
       {:soot_telemetry, path: "../soot_telemetry"},
+      {:igniter, "~> 0.6", optional: true},
       {:plug, "~> 1.19"},
       {:jason, "~> 1.4"},
 
