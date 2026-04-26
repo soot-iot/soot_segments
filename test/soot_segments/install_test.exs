@@ -16,33 +16,15 @@ defmodule Mix.Tasks.SootSegments.InstallTest do
     end
   end
 
-  describe "generated modules" do
-    test "creates the Segments domain module" do
-      setup_project()
-      |> Igniter.compose_task("soot_segments.install", [])
-      |> assert_creates("lib/test/segments.ex")
-    end
-
-    test "creates the Segment resource stub" do
-      setup_project()
-      |> Igniter.compose_task("soot_segments.install", [])
-      |> assert_creates("lib/test/segments/segment.ex")
-    end
-
-    test "creates the SegmentVersion resource stub" do
-      setup_project()
-      |> Igniter.compose_task("soot_segments.install", [])
-      |> assert_creates("lib/test/segments/segment_version.ex")
-    end
-
-    test "Segment resource declares the Segments domain" do
+  describe "domain registration" do
+    test "registers SootSegments.Domain in operator's :ash_domains" do
       result =
         setup_project()
         |> Igniter.compose_task("soot_segments.install", [])
 
-      diff = diff(result, only: "lib/test/segments/segment.ex")
-      assert diff =~ "use Ash.Resource"
-      assert diff =~ "Test.Segments"
+      diff = diff(result, only: "config/config.exs")
+      assert diff =~ "SootSegments.Domain"
+      assert diff =~ "ash_domains:"
     end
   end
 
@@ -54,13 +36,23 @@ defmodule Mix.Tasks.SootSegments.InstallTest do
       + |  import_deps: [:soot_segments]
       """)
     end
+  end
 
-    test "is idempotent" do
+  describe "idempotency" do
+    test "running twice is a no-op on .formatter.exs" do
       setup_project()
       |> Igniter.compose_task("soot_segments.install", [])
       |> apply_igniter!()
       |> Igniter.compose_task("soot_segments.install", [])
       |> assert_unchanged(".formatter.exs")
+    end
+
+    test "running twice does not re-add SootSegments.Domain to :ash_domains" do
+      setup_project()
+      |> Igniter.compose_task("soot_segments.install", [])
+      |> apply_igniter!()
+      |> Igniter.compose_task("soot_segments.install", [])
+      |> assert_unchanged("config/config.exs")
     end
   end
 
