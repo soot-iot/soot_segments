@@ -24,7 +24,6 @@ defmodule SootSegments.Query do
 
   alias SootSegments.ClickHouse.SQL
   alias SootSegments.Segment.Info
-  alias SootSegments.SegmentRow
 
   @default_window_hours 24
 
@@ -137,8 +136,8 @@ defmodule SootSegments.Query do
   defp default_target(module) do
     name = Info.name(module)
 
-    case SegmentRow.get_by_name(name, authorize?: false) do
-      {:ok, %SegmentRow{target: target}} when is_binary(target) ->
+    case SootSegments.segment_row().get_by_name(name, authorize?: false) do
+      {:ok, %{target: target}} when is_binary(target) ->
         target
 
       _ ->
