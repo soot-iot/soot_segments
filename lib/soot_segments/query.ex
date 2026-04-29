@@ -136,7 +136,9 @@ defmodule SootSegments.Query do
   defp default_target(module) do
     name = Info.name(module)
 
-    case SootSegments.segment_row().get_by_name(name, authorize?: false) do
+    case SootSegments.segment_row().get_by_name(name,
+           actor: SootSegments.Actors.system(:registry_sync)
+         ) do
       {:ok, %{target: target}} when is_binary(target) ->
         target
 
