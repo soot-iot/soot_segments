@@ -18,9 +18,21 @@ defmodule SootSegments.SegmentRow do
     otp_app: :soot_segments,
     domain: SootSegments.Domain,
     data_layer: Ash.DataLayer.Ets,
+    authorizers: [Ash.Policy.Authorizer],
     extensions: [SootSegments.Resource.SegmentRow]
 
   ets do
     private? false
+  end
+
+  # Default policies (POLICY-SPEC §4.1). Library-internal flows run
+  # as `SootSegments.Actors.system(:registry_sync)`. Operators
+  # override this resource and widen the allow list for their User
+  # actors.
+  policies do
+    policy always() do
+      access_type :strict
+      authorize_if actor_attribute_equals(:part, :registry_sync)
+    end
   end
 end

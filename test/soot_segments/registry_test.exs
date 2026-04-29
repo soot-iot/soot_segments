@@ -37,10 +37,10 @@ defmodule SootSegments.RegistryTest do
     {:ok, results} = Registry.register_all([VibrationP95, PowerDaily])
     assert length(results) == 2
 
-    {:ok, all_segments} = Ash.read(SegmentRow)
+    {:ok, all_segments} = Ash.read(SegmentRow, authorize?: false)
     assert length(all_segments) == 2
 
-    {:ok, all_versions} = Ash.read(SegmentVersion)
+    {:ok, all_versions} = Ash.read(SegmentVersion, authorize?: false)
     assert length(all_versions) == 2
   end
 
@@ -59,7 +59,7 @@ defmodule SootSegments.RegistryTest do
       assert v2.status == :current
       assert v2.materialized_target == "segment_vibration_p95_v2"
 
-      assert {:ok, reloaded_v1} = Ash.get(SegmentVersion, v1.id)
+      assert {:ok, reloaded_v1} = Ash.get(SegmentVersion, v1.id, authorize?: false)
       assert reloaded_v1.status == :deprecated
 
       assert seg_v2.id == seg_v1.id
@@ -79,7 +79,7 @@ defmodule SootSegments.RegistryTest do
       assert seg.current_version_id == v1.id
       assert seg.target == v1.materialized_target
 
-      assert {:ok, reloaded_v2} = Ash.get(SegmentVersion, v2.id)
+      assert {:ok, reloaded_v2} = Ash.get(SegmentVersion, v2.id, authorize?: false)
       assert reloaded_v2.status == :deprecated
     end
 
@@ -102,7 +102,7 @@ defmodule SootSegments.RegistryTest do
                Registry.register_all([VibrationP95V2, VibrationP95])
 
       # The first module of the list still made it through.
-      {:ok, versions} = SegmentVersion.for_segment(:vibration_p95)
+      {:ok, versions} = SegmentVersion.for_segment(:vibration_p95, authorize?: false)
       versions_by_v = Map.new(versions, &{&1.version, &1.status})
       assert versions_by_v[1] == :retired
       assert versions_by_v[2] == :current
