@@ -56,7 +56,9 @@ defmodule SootSegments.Registry do
   defp ensure_version(name, fingerprint, descriptor, target) do
     version_module = SootSegments.segment_version()
 
-    case version_module.get_by_fingerprint(name, fingerprint, actor: SootSegments.Actors.system(:registry_sync)) do
+    case version_module.get_by_fingerprint(name, fingerprint,
+           actor: SootSegments.Actors.system(:registry_sync)
+         ) do
       {:ok, %{status: :current} = version} ->
         {:ok, version}
 
@@ -74,7 +76,9 @@ defmodule SootSegments.Registry do
 
   defp create_new_version(name, fingerprint, descriptor, target) do
     version_module = SootSegments.segment_version()
-    {:ok, prior_versions} = version_module.for_segment(name, actor: SootSegments.Actors.system(:registry_sync))
+
+    {:ok, prior_versions} =
+      version_module.for_segment(name, actor: SootSegments.Actors.system(:registry_sync))
 
     Enum.each(prior_versions, fn v ->
       if v.status == :current do
@@ -100,7 +104,9 @@ defmodule SootSegments.Registry do
         # Concurrent register: another caller may have created the
         # row for this fingerprint or won the version-number race.
         # Re-look up by fingerprint and use that row if present.
-        case version_module.get_by_fingerprint(name, fingerprint, actor: SootSegments.Actors.system(:registry_sync)) do
+        case version_module.get_by_fingerprint(name, fingerprint,
+               actor: SootSegments.Actors.system(:registry_sync)
+             ) do
           {:ok, %_{} = existing} -> {:ok, existing}
           _ -> err
         end
@@ -109,7 +115,9 @@ defmodule SootSegments.Registry do
 
   defp deprecate_previous(name) do
     version_module = SootSegments.segment_version()
-    {:ok, versions} = version_module.for_segment(name, actor: SootSegments.Actors.system(:registry_sync))
+
+    {:ok, versions} =
+      version_module.for_segment(name, actor: SootSegments.Actors.system(:registry_sync))
 
     Enum.each(versions, fn v ->
       if v.status == :current do
