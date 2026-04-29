@@ -92,7 +92,7 @@ defmodule SootSegments.MixTasksTest do
       assert body =~ "CREATE MATERIALIZED VIEW IF NOT EXISTS segment_vibration_p95_v2_mv"
       refute body =~ "segment_vibration_p95_v1"
 
-      {:ok, versions} = SegmentVersion.for_segment(:vibration_p95)
+      {:ok, versions} = SegmentVersion.for_segment(:vibration_p95, authorize?: false)
       assert Enum.find(versions, &(&1.version == 2)).status == :current
     end
   end

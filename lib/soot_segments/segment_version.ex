@@ -24,9 +24,17 @@ defmodule SootSegments.SegmentVersion do
     otp_app: :soot_segments,
     domain: SootSegments.Domain,
     data_layer: Ash.DataLayer.Ets,
+    authorizers: [Ash.Policy.Authorizer],
     extensions: [SootSegments.Resource.SegmentVersion]
 
   ets do
     private? false
+  end
+
+  policies do
+    policy always() do
+      access_type :strict
+      authorize_if actor_attribute_equals(:part, :registry_sync)
+    end
   end
 end
