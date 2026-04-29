@@ -56,13 +56,13 @@ defmodule SootSegments.Registry do
   defp ensure_version(name, fingerprint, descriptor, target) do
     version_module = SootSegments.segment_version()
 
-    case version_module.get_by_fingerprint(name, fingerprint, authorize?: false) do
+    case version_module.get_by_fingerprint(name, fingerprint, actor: SootSegments.Actors.system(:registry_sync)) do
       {:ok, %{status: :current} = version} ->
         {:ok, version}
 
       {:ok, %{status: :deprecated} = version} ->
         deprecate_previous(name)
-        version_module.promote(version, authorize?: false)
+        version_module.promote(version, actor: SootSegments.Actors.system(:registry_sync))
 
       {:ok, %{status: :retired}} ->
         {:error, :cannot_reuse_retired_version}
@@ -74,11 +74,11 @@ defmodule SootSegments.Registry do
 
   defp create_new_version(name, fingerprint, descriptor, target) do
     version_module = SootSegments.segment_version()
-    {:ok, prior_versions} = version_module.for_segment(name, authorize?: false)
+    {:ok, prior_versions} = version_module.for_segment(name, actor: SootSegments.Actors.system(:registry_sync))
 
     Enum.each(prior_versions, fn v ->
       if v.status == :current do
-        version_module.deprecate(v, authorize?: false)
+        version_module.deprecate(v, actor: SootSegments.Actors.system(:registry_sync))
       end
     end)
 
@@ -91,7 +91,7 @@ defmodule SootSegments.Registry do
            descriptor,
            DateTime.utc_now(),
            %{materialized_target: target <> "_v" <> Integer.to_string(version)},
-           authorize?: false
+           actor: SootSegments.Actors.system(:registry_sync)
          ) do
       {:ok, _} = ok ->
         ok
@@ -100,7 +100,7 @@ defmodule SootSegments.Registry do
         # Concurrent register: another caller may have created the
         # row for this fingerprint or won the version-number race.
         # Re-look up by fingerprint and use that row if present.
-        case version_module.get_by_fingerprint(name, fingerprint, authorize?: false) do
+        case version_module.get_by_fingerprint(name, fingerprint, actor: SootSegments.Actors.system(:registry_sync)) do
           {:ok, %_{} = existing} -> {:ok, existing}
           _ -> err
         end
@@ -109,11 +109,11 @@ defmodule SootSegments.Registry do
 
   defp deprecate_previous(name) do
     version_module = SootSegments.segment_version()
-    {:ok, versions} = version_module.for_segment(name, authorize?: false)
+    {:ok, versions} = version_module.for_segment(name, actor: SootSegments.Actors.system(:registry_sync))
 
     Enum.each(versions, fn v ->
       if v.status == :current do
-        version_module.deprecate(v, authorize?: false)
+        version_module.deprecate(v, actor: SootSegments.Actors.system(:registry_sync))
       end
     end)
   end
@@ -124,7 +124,7 @@ defmodule SootSegments.Registry do
   defp upsert_segment(module, name, version) do
     segment_module = SootSegments.segment_row()
 
-    case segment_module.get_by_name(name, authorize?: false) do
+    case segment_module.get_by_name(name, actor: SootSegments.Actors.system(:registry_sync)) do
       {:ok, %_{} = segment} ->
         if segment.current_version_id == version.id do
           {:ok, segment}
@@ -133,7 +133,7 @@ defmodule SootSegments.Registry do
             segment,
             %{current_version_id: version.id, target: version.materialized_target},
             action: :update,
-            authorize?: false
+            actor: SootSegments.Actors.system(:registry_sync)
           )
         end
 
@@ -144,7 +144,7 @@ defmodule SootSegments.Registry do
           Info.granularity(module),
           version.id,
           %{target: version.materialized_target},
-          authorize?: false
+          actor: SootSegments.Actors.system(:registry_sync)
         )
     end
   end
