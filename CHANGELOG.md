@@ -7,6 +7,16 @@ the project adheres to semantic versioning.
 ## [Unreleased]
 
 ### Added
+- `mix soot_segments.install` now generates AshPostgres-backed
+  consumer `SegmentRow` and `SegmentVersion` resource modules under
+  `lib/<app>/segment_row.ex` and `lib/<app>/segment_version.ex` and
+  registers them in `config/config.exs` under
+  `:soot_segments, segment_row:` / `:soot_segments, segment_version:`.
+  The installer composes `ash_postgres.install` to wire the
+  consumer's Repo and the `:ash_postgres` dep. The library's own
+  concrete defaults stay on `Ash.DataLayer.Ets` for the soot_segments
+  test suite; consumer projects always boot against AshPostgres,
+  which is mandatory in the soot stack.
 - `SegmentVersion :promote` action: transitions a `:deprecated` row
   back to `:current`. Used by the registry when an operator
   re-registers an older fingerprint.
