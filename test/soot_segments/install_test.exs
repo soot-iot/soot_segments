@@ -192,6 +192,25 @@ defmodule Mix.Tasks.SootSegments.InstallTest do
       assert content =~ "repo(Test.Repo)"
     end
 
+    test "SegmentRow and SegmentVersion carry authorizer + admin bypass" do
+      result =
+        setup_project()
+        |> Igniter.compose_task("soot_segments.install", [])
+
+      for path <- [@segment_row_path, @segment_version_path] do
+        content = generated_source(result, path)
+
+        assert content =~ "authorizers: [Ash.Policy.Authorizer]",
+               "expected authorizer in #{path}"
+
+        assert content =~ "policies do",
+               "expected policies block in #{path}"
+
+        assert content =~ "bypass actor_attribute_equals(:role, :admin) do",
+               "expected admin bypass in #{path}"
+      end
+    end
+
     test "registers Test.SegmentRow in config/config.exs under :soot_segments" do
       result =
         setup_project()

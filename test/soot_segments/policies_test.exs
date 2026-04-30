@@ -37,6 +37,11 @@ defmodule SootSegments.PoliciesTest do
                  actor: %SootSegments.Actors.System{part: :stranger}
                )
     end
+
+    test "admin can read", %{segment: seg} do
+      assert {:ok, ^seg} =
+               Ash.get(SootSegments.SegmentRow, seg.id, actor: Actors.admin())
+    end
   end
 
   describe "SootSegments.SegmentVersion" do
@@ -47,6 +52,11 @@ defmodule SootSegments.PoliciesTest do
 
     test "no actor is forbidden", %{version: ver} do
       assert {:error, %Ash.Error.Forbidden{}} = Ash.get(SootSegments.SegmentVersion, ver.id)
+    end
+
+    test "admin can read", %{version: ver} do
+      assert {:ok, ^ver} =
+               Ash.get(SootSegments.SegmentVersion, ver.id, actor: Actors.admin())
     end
   end
 end
