@@ -30,6 +30,10 @@ defmodule SootSegments.SegmentRow do
   # override this resource and widen the allow list for their User
   # actors.
   policies do
+    bypass actor_attribute_equals(:role, :admin) do
+      authorize_if always()
+    end
+
     policy always() do
       access_type :strict
       authorize_if actor_attribute_equals(:part, :registry_sync)

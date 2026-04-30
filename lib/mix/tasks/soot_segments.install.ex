@@ -190,11 +190,24 @@ if Code.ensure_loaded?(Igniter) do
         otp_app: :#{otp_app(igniter)},
         domain: SootSegments.Domain,
         data_layer: AshPostgres.DataLayer,
+        authorizers: [Ash.Policy.Authorizer],
         extensions: [#{inspect(spec.extension)}]
 
       postgres do
         table "#{spec.table}"
         repo #{inspect(repo)}
+      end
+
+      # Default policies (POLICY-SPEC §4.1).
+      policies do
+        bypass actor_attribute_equals(:role, :admin) do
+          authorize_if always()
+        end
+
+        policy always() do
+          access_type :strict
+          authorize_if actor_attribute_equals(:part, :registry_sync)
+        end
       end
       """
     end
