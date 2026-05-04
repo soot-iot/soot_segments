@@ -8,6 +8,8 @@ defmodule SootSegments.Domain do
   use Ash.Domain, otp_app: :soot_segments, validate_config_inclusion?: false
 
   resources do
+    allow_unregistered? true
+
     resource SootSegments.SegmentRow
     resource SootSegments.SegmentVersion
   end
